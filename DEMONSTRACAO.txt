@@ -1,0 +1,28 @@
+HabboMed AI
+Roteiro de demonstração · Andreia Nunes
+Higher Ed Faculty AI Fellowship
+
+1. Investigue o caso
+Abra index.html no navegador e selecione o caso 001, “Febre Aguda e Mialgia
+Intensa”. Leia a queixa da triagem. Clique em Investigar para saber o que
+aconteceu quando a febre começou a baixar. Que peso você daria à dor
+abdominal e ao relato de sangramento na gengiva?
+
+2. Decida se assinaria o parecer
+Abra o parecer simulado. Classifique cada um dos quatro trechos como
+correto, omissão ou erro. Quando marcar uma falha, escolha sua categoria.
+Decida se aprovaria ou rejeitaria o parecer completo e confirme a anotação.
+
+3. Compare a decisão com o gabarito
+Leia a explicação de cada trecho. No caso 001, o parecer interpreta a queda
+da febre como recuperação. O gabarito aponta os sinais de alarme que essa
+conclusão deixou de considerar. Qual achado mais pesou na sua decisão?
+
+4. Discuta a evidência no Gemini
+Escolha um trecho, copie o texto preparado pelo simulador e abra o Gemini
+na sua conta Google Workspace. Responda à pergunta usando os achados do caso.
+Volte ao simulador e registre por que manteve ou reviu a sua decisão.
+
+Em Minhas tentativas, o CSV resume as respostas e o JSON inclui a reflexão
+registrada. Os cinco casos são fictícios. Esta é uma demonstração técnica.
+O piloto com estudantes é a próxima etapa.

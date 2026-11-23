@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HabboMed AI | Auditoria de pareceres simulados · Andreia Nunes</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- TOP HUD BAR -->
+  <header class="top-hud">
+    <div class="brand-block">
+      <div class="brand-logo">🏥</div>
+      <div>
+        <div class="brand-title">HabboMed AI</div>
+        <div class="brand-subtitle">Auditoria de pareceres simulados · Apresentação de Andreia Nunes</div>
+      </div>
+    </div>
+
+    <div class="hud-stats">
+      <div class="hud-pill xp">⭐ <span id="hudXP">120 XP</span></div>
+      <div class="hud-pill rank">🩺 <span id="hudRank">Interno Auditando IA</span></div>
+      <div class="hud-pill">📊 <span id="hudCompletedCount">0/5 Casos</span></div>
+    </div>
+
+    <div class="hud-actions">
+      <button type="button" class="btn-hud research" id="btnOpenResearchModal">
+        📈 Minhas tentativas
+      </button>
+      <button type="button" class="btn-hud" id="btnOpenTCLEModal">
+        Sobre a atividade
+      </button>
+    </div>
+  </header>
+
+  <!-- MAPA DE ALAS DO HOSPITAL & SELETOR DE CASOS -->
+  <nav class="wing-bar">
+    <div class="wing-filters">
+      <span class="wing-label">🗺️ Mapa de Alas:</span>
+      <button type="button" class="wing-btn active" data-wing-filter="all">Todas as Alas</button>
+      <button type="button" class="wing-btn" data-wing-filter="infecto">🦠 Síndromes Febris</button>
+      <button type="button" class="wing-btn" data-wing-filter="emergencia">🚨 Sala Amarela (PS)</button>
+      <button type="button" class="wing-btn" data-wing-filter="ambulatorio">🩺 Ambulatório</button>
+      <button type="button" class="wing-btn" data-wing-filter="geriatria">👵 Geriatria & Beers</button>
+    </div>
+
+    <div class="case-selector-strip" id="caseListContainer">
+      <!-- Preenchido via JS -->
+    </div>
+  </nav>
+
+  <!-- WORKSPACE PRINCIPAL: CONSULTÓRIO ISOMÉTRICO (ESQUERDA) + PRONTUÁRIO DE AUDITORIA (DIREITA) -->
+  <main class="workspace-grid">
+
+    <!-- COLUNA ESQUERDA: MUNDO ISOMÉTRICO ESTILO HABBO HOTEL -->
+    <section class="iso-column">
+      <div class="iso-stage-card">
+        <div class="iso-stage-header">
+          <span>🎮 <strong>Consultório Isométrico Interativo (2.5D)</strong></span>
+          <span>Clique nos objetos ou no paciente</span>
+        </div>
+        <canvas id="isoCanvas" width="560" height="400"></canvas>
+        <div class="iso-quick-tips">
+          <span>🖱️ <strong>Paciente/Maca:</strong> Investigar queixa</span>
+          <span>💻 <strong>Terminal MedAI:</strong> Abrir parecer simulado</span>
+          <span>📟 <strong>Monitor:</strong> Sinais vitais</span>
+        </div>
+      </div>
+
+      <!-- FICHA DO PACIENTE SINTÉTICO & MONITOR MULTIPARAMÉTRICO -->
+      <div class="patient-vitals-card">
+        <div class="patient-bio-row">
+          <h3 id="patientNameLabel">Paciente</h3>
+          <span class="patient-job" id="patientJobLabel">Ocupação</span>
+        </div>
+
+        <div class="chief-complaint-box">
+          <strong>Queixa Principal na Triagem:</strong>
+          <div id="chiefComplaintText">Carregando caso clínico...</div>
+        </div>
+
+        <div class="vitals-grid">
+          <div class="vital-box">
+            <span class="vital-label">Pressão Art. (PA)</span>
+            <span class="vital-val" id="vitalPA">--</span>
+          </div>
+          <div class="vital-box">
+            <span class="vital-label">Freq. Cardíaca</span>
+            <span class="vital-val" id="vitalFC">--</span>
+          </div>
+          <div class="vital-box">
+            <span class="vital-label">Temperatura</span>
+            <span class="vital-val" id="vitalTemp">--</span>
+          </div>
+          <div class="vital-box">
+            <span class="vital-label">Saturação O₂</span>
+            <span class="vital-val" id="vitalSpO2">--</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLUNA DIREITA: PRONTUÁRIO INTERATIVO & WORKBENCH DE DATA ANNOTATION -->
+    <section class="ehr-column">
+      <div class="ehr-header">
+        <div class="ehr-title-group">
+          <h2 id="caseHeaderTitle">CASO-001</h2>
+          <div class="ehr-badges">
+            <span class="badge-wing" id="caseHeaderWing">Ala Clínica</span>
+            <span class="badge-diff" id="caseHeaderDifficulty">Nível</span>
+          </div>
+        </div>
+        <div>
+          <span class="hud-pill" id="anamnesisProgressBadge">0/4 investigados</span>
+        </div>
+      </div>
+
+      <!-- NAVEGAÇÃO ENTRE ETAPA 1 (ANAMNESE) E ETAPA 2 (DATA ANNOTATION DA IA) -->
+      <div class="ehr-tabs">
+        <button type="button" class="tab-btn active" data-tab-target="tab-anamnesis" onclick="window.medAuditApp.switchTab('tab-anamnesis')">
+          1️⃣ Etapa 1: Anamnese & Exame Físico
+        </button>
+        <button type="button" class="tab-btn" data-tab-target="tab-audit" onclick="window.medAuditApp.switchTab('tab-audit')">
+          2️⃣ Etapa 2: Auditar Conduta da IA (Data Annotation)
+        </button>
+      </div>
+
+      <!-- CONTEÚDO DA ABA 1: ANAMNESE -->
+      <div class="tab-pane" id="tab-anamnesis">
+        <div class="step-banner">
+          <p>
+            <strong>Investigue o caso.</strong> Confira a história, os medicamentos e os achados do exame. Ao ler o parecer, identifique quais dados sustentam ou colocam em dúvida cada afirmação.
+          </p>
+        </div>
+
+        <div class="anamnesis-list" id="anamnesisOptionsList">
+          <!-- Renderizado via JS -->
+        </div>
+
+        <div id="clinicalCluesLog"></div>
+
+        <div class="cta-unlock-ai">
+          <div>
+            <strong>Que evidências sustentam sua decisão?</strong>
+            <div style="font-size:12px; color:#e9d5ff; margin-top:2px;">
+              Leia o parecer simulado e confira cada afirmação com os dados que investigou.
+            </div>
+          </div>
+          <button type="button" class="btn-generate-ai" id="btnGenerateAIOpinion">
+            Abrir parecer simulado →
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTEÚDO DA ABA 2: WORKBENCH DE DATA ANNOTATION -->
+      <div class="tab-pane hidden" id="tab-audit">
+
+        <div id="aiLockedOverlay" class="ai-locked-box">
+          <h3 style="margin-bottom:8px;">Parecer simulado</h3>
+          <p style="color:#94a3b8; font-size:13px; margin-bottom:14px;">
+            Investigue a história e os achados do caso. Quando estiver pronto, abra o parecer para avaliá-lo.
+          </p>
+          <button type="button" class="btn-generate-ai" onclick="window.medAuditApp.unlockAIOpinion()">
+            Abrir parecer do caso
+          </button>
+        </div>
+
+        <div id="aiWorkbenchContent" class="hidden">
+          <div class="step-banner">
+            <p>
+              <strong>Modo Data Annotation Clínico:</strong> Avalie os quatro trechos do parecer <code id="aiModelBadge">MedAI-LLM</code>. Marque 🟢 <strong>Correto</strong>, 🟡 <strong>Omissão</strong> ou 🔴 <strong>Alucinação/Erro</strong> e rotule a categoria da falha.
+            </p>
+          </div>
+
+          <div class="ai-segments-container" id="aiSegmentsList">
+            <!-- Trechos de anotação gerados via JS -->
+          </div>
+
+          <!-- VEREDITO GLOBAL DO ALUNO -->
+          <div class="verdict-box">
+            <h4>Você assinaria este parecer?</h4>
+            <div class="verdict-choices">
+              <button type="button" class="verdict-btn" data-verdict-choice="approve">
+                ✅ Aprovar Conduta da IA (Coerente com os achados do caso)
+              </button>
+              <button type="button" class="verdict-btn" data-verdict-choice="reject">
+                🛑 Rejeitar / Vetar Conduta da IA (Contém Omissão Crítica ou Risco ao Paciente)
+              </button>
+            </div>
+
+            <div class="submit-row">
+              <button type="button" class="btn-submit-audit" id="btnSubmitAudit">
+                Confirmar anotação e ver o gabarito
+              </button>
+              <button type="button" class="btn-next-case" id="btnNextCase">
+                Próximo Paciente →
+              </button>
+            </div>
+          </div>
+
+          <!-- PAINEL DE DEBRIEFING E MÉTRICAS (APARECE APÓS SUBMETER) -->
+          <div id="debriefingPanel" class="debrief-panel hidden"></div>
+          <section id="reflexao" class="fellow-reflection hidden" aria-labelledby="reflexaoTitulo">
+            <h3 id="reflexaoTitulo">3. Discuta sua decisão no Gemini</h3>
+            <p>Consulte a referência do caso para conferir os argumentos. <a id="fonteDoCaso" target="_blank" rel="noopener noreferrer"></a></p>
+            <p>Escolha um trecho. Leve ao Gemini o parecer, os achados investigados e sua decisão inicial. Ele fará uma pergunta sobre as evidências que sustentam seu julgamento.</p>
+            <label for="trechoReflexao">Trecho para discutir</label>
+            <select id="trechoReflexao"></select>
+            <label for="promptGemini">Texto para levar à conversa</label>
+            <textarea id="promptGemini" rows="7" readonly></textarea>
+            <div class="fellow-actions">
+              <button type="button" class="btn-hud" id="copiarPrompt">Copiar texto</button>
+              <a class="btn-hud" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer">Abrir Gemini ↗</a>
+            </div>
+            <p>Na sua conta do Google Workspace, cole o texto e responda à pergunta do Gemini. Volte aqui para registrar sua conclusão.</p>
+            <label for="reflexaoAluno">Que evidência fez você manter ou rever sua decisão?</label>
+            <textarea id="reflexaoAluno" rows="3" maxlength="1200" placeholder="Use apenas informações do caso fictício."></textarea>
+            <button type="button" class="btn-hud" id="salvarReflexao">Registrar reflexão nesta tentativa</button>
+            <p id="estadoReflexao" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- MODAL 1: PAINEL DO PESQUISADOR (MESTRADO) & EXPORTAÇÃO DE DADOS -->
+  <div class="modal-backdrop hidden" id="researchModal">
+    <div class="modal-card">
+      <div class="modal-top">
+        <div>
+          <h3>Tentativas neste navegador</h3>
+          <small style="color:#94a3b8;">As medidas comparam suas respostas com o gabarito didático. Você pode exportar as tentativas ou apagá-las.</small>
+        </div>
+        <button type="button" class="btn-close-modal" id="btnCloseResearchModal">✕ Fechar</button>
+      </div>
+
+      <div class="research-kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-num" id="resTotalAudits">0</span>
+          <span class="kpi-title">Tentativas registradas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-num" id="resAvgAccuracy">0%</span>
+          <span class="kpi-title">Acurácia de Data Annotation</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-num" id="resAutomationBiasRate">0%</span>
+          <span class="kpi-title">Tentativas com aceite de erro</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-num" id="resAvgTime">0s</span>
+          <span class="kpi-title">Tempo Médio de Julgamento</span>
+        </div>
+      </div>
+
+      <table class="research-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Caso / Modo Experimental</th>
+            <th>Anamnese</th>
+            <th>Acurácia</th>
+            <th>Erros Detectados</th>
+            <th>Aceite de erro</th>
+            <th>Tempo</th>
+          </tr>
+        </thead>
+        <tbody id="researchLogsTableBody"></tbody>
+      </table>
+
+      <div style="display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap;">
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-hud research" id="btnExportCSV">Baixar resumo (.csv)</button>
+          <button type="button" class="btn-hud" id="btnExportJSON">Baixar registros (.json)</button>
+        </div>
+        <button type="button" class="btn-hud" id="btnResetLogs">🗑️ Limpar Dados de Teste</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="tcleModal">
+    <div class="modal-card" role="dialog" aria-labelledby="sobreTitulo" style="max-width: 620px">
+      <div class="modal-top"><h3 id="sobreTitulo">Sobre a atividade</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseTCLEModal">Fechar</button></div>
+      <div class="fellow-about">
+        <p><strong>HabboMed AI · Andreia Nunes</strong><br>Apresentação para o Higher Ed Faculty AI Fellowship.</p>
+        <p>O que você faria se um parecer convincente entrasse em conflito com a história do paciente? Investigue um caso fictício, classifique quatro trechos e decida se assinaria o parecer.</p>
+        <p>Depois de confirmar a decisão, compare-a com o gabarito e discuta uma evidência no Gemini com sua conta Google Workspace. Volte ao caso e registre o que sustentou ou mudou seu julgamento.</p>
+        <p>Os cinco casos têm pareceres e gabaritos preparados para o exercício. Os resultados descrevem tentativas neste navegador. A etapa no Gemini requer internet e uma conta com acesso.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/cases-data.js"></script>
+  <script src="js/iso-engine.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/reflexao.js"></script>
+</body>
+</html>
